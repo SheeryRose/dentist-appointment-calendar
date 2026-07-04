@@ -47,3 +47,19 @@
 .calendar-cell.empty {
   background-color: #fafafa;
 }
+
+.calendar-cell {
+  cursor: pointer;
+}
+
+.calendar-cell.selected {
+  background-color: #e0e0e0;
+  font-weight: bold;
+}
+
+.day-details {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+}
