@@ -31,12 +31,15 @@ function App() {
   const [patientName, setPatientName] = useState('')
   const [time, setTime] = useState('')
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   function handleDayClick(day) {
     setSelectedDay(day)
     setPatientName('')
     setTime('')
     setErrors({})
+    setSubmitError('')
   }
 
   function handleAddAppointment(e) {
@@ -55,21 +58,35 @@ function App() {
       return
     }
 
-    const cleanName = sanitizeInput(patientName)
-    const cleanTime = sanitizeInput(time)
+    setLoading(true)
+    setSubmitError('')
 
-    const existing = appointments[selectedDay] || []
-    const updated = {
-      ...appointments,
-      [selectedDay]: [...existing, { patientName: cleanName, time: cleanTime }],
-    }
+    setTimeout(() => {
+      const didFail = Math.random() < 0.1
 
-    setAppointments(updated)
-    setPatientName('')
-    setTime('')
-    setErrors({})
+      if (didFail) {
+        setLoading(false)
+        setSubmitError('Network error. Please try again.')
+        return
+      }
 
-    console.log('[Analytics] User interacted with Calendar Widget: added appointment')
+      const cleanName = sanitizeInput(patientName)
+      const cleanTime = sanitizeInput(time)
+
+      const existing = appointments[selectedDay] || []
+      const updated = {
+        ...appointments,
+        [selectedDay]: [...existing, { patientName: cleanName, time: cleanTime }],
+      }
+
+      setAppointments(updated)
+      setPatientName('')
+      setTime('')
+      setErrors({})
+      setLoading(false)
+
+      console.log('[Analytics] User interacted with Calendar Widget: added appointment')
+    }, 1200)
   }
 
   const dayAppointments = selectedDay ? appointments[selectedDay] || [] : []
@@ -144,8 +161,12 @@ function App() {
               />
             </div>
 
-            <button type="submit">Add Appointment</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Adding...' : 'Add Appointment'}
+            </button>
           </form>
+
+          {submitError && <p className="error-message">{submitError}</p>}
 
           {dayAppointments.length === 0 ? (
             <p>No appointments found for this day.</p>
