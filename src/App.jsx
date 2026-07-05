@@ -11,6 +11,10 @@ function getFirstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay()
 }
 
+function sanitizeInput(value) {
+  return value.replace(/[<>]/g, '')
+}
+
 function App() {
   const today = new Date()
   const year = today.getFullYear()
@@ -24,9 +28,48 @@ function App() {
 
   const [selectedDay, setSelectedDay] = useState(null)
   const [appointments, setAppointments] = useState({})
+  const [patientName, setPatientName] = useState('')
+  const [time, setTime] = useState('')
+  const [errors, setErrors] = useState({})
 
   function handleDayClick(day) {
     setSelectedDay(day)
+    setPatientName('')
+    setTime('')
+    setErrors({})
+  }
+
+  function handleAddAppointment(e) {
+    e.preventDefault()
+
+    const newErrors = {}
+    if (!patientName.trim()) {
+      newErrors.patientName = true
+    }
+    if (!time.trim()) {
+      newErrors.time = true
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    const cleanName = sanitizeInput(patientName)
+    const cleanTime = sanitizeInput(time)
+
+    const existing = appointments[selectedDay] || []
+    const updated = {
+      ...appointments,
+      [selectedDay]: [...existing, { patientName: cleanName, time: cleanTime }],
+    }
+
+    setAppointments(updated)
+    setPatientName('')
+    setTime('')
+    setErrors({})
+
+    console.log('[Analytics] User interacted with Calendar Widget: added appointment')
   }
 
   const dayAppointments = selectedDay ? appointments[selectedDay] || [] : []
@@ -55,6 +98,14 @@ function App() {
                   : 'calendar-cell'
               }
               onClick={() => handleDayClick(day)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Select day ${day}`}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleDayClick(day)
+                }
+              }}
             >
               {day}
             </div>
@@ -67,6 +118,35 @@ function App() {
           <h2>
             Appointments for {month + 1}/{selectedDay}/{year}
           </h2>
+
+          <form onSubmit={handleAddAppointment} className="appointment-form">
+            <div className="form-group">
+              <label htmlFor="patientName">Patient Name</label>
+              <input
+                id="patientName"
+                type="text"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                className={errors.patientName ? 'input-error' : ''}
+                aria-label="Patient Name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="time">Time</label>
+              <input
+                id="time"
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className={errors.time ? 'input-error' : ''}
+                aria-label="Appointment Time"
+              />
+            </div>
+
+            <button type="submit">Add Appointment</button>
+          </form>
+
           {dayAppointments.length === 0 ? (
             <p>No appointments found for this day.</p>
           ) : (
