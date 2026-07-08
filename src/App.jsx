@@ -92,7 +92,7 @@ function App() {
   const dayAppointments = selectedDay ? appointments[selectedDay] || [] : []
 
   return (
-    <div className="app">
+    <main className="app">
       <h1>Dentist Appointment Calendar</h1>
       <div className="calendar">
         <div className="calendar-header">
@@ -181,7 +181,7 @@ function App() {
           )}
         </div>
       )}
-    </div>
+    </main>
   )
 }
 
